@@ -8,6 +8,7 @@
 #include <string>
 #include <string.h>
 #include <vector>
+#include <iostream>
 #include "../327_proj3_test/includes/StringParserClass.h"
 #include "../327_proj3_test/includes/constants.h"
 
@@ -23,7 +24,7 @@ StringParserClass::StringParserClass(void) {
 
 //call cleanup to release any allocated memory
 StringParserClass::~StringParserClass(void) {
-
+	// cleanup();
 }
 
 //these are the start tag and the end tags that we want to find,
@@ -34,8 +35,20 @@ StringParserClass::~StringParserClass(void) {
 //SUCCESS
 //ERROR_TAGS_NULL if either pStart or pEnd is null
 int StringParserClass::setTags(const char *pStart, const char *pEnd) {
+	if (pStart == nullptr || pEnd == nullptr) {
+		return ERROR_TAGS_NULL;
+	}
 
-	return -100;
+	int startLen = strlen(pStart);
+	int endLen   = strlen(pEnd);
+
+	pStartTag = new char[startLen+1];
+	pEndTag   = new char[endLen+1];
+
+	strncpy(pStartTag, pStart, startLen);
+	strncpy(pEndTag, pEnd, endLen);
+
+	return SUCCESS;
 }
 
 //First clears myVector
@@ -46,9 +59,35 @@ int StringParserClass::setTags(const char *pStart, const char *pEnd) {
 //ERROR_TAGS_NULL if either pStart or pEnd is null
 //ERROR_DATA_NULL pDataToSearchThru is null
 int StringParserClass::getDataBetweenTags(char *pDataToSearchThru, std::vector<std::string> &myVector) {
+	if (pDataToSearchThru == nullptr) {
+		return ERROR_DATA_NULL;
+	}
 
+	if (pStartTag == nullptr || pEndTag == nullptr) {
+		return ERROR_TAGS_NULL;
+	}
 
-	return -100;
+	myVector.clear();
+
+	std::string str = pDataToSearchThru;
+	int tagLen = strlen(pStartTag);
+	bool noTagFound = false;
+	size_t foundStart = str.find(pStartTag);
+	size_t foundEnd   = str.find(pEndTag);
+
+	while (!noTagFound) {
+		if(foundStart != std::string::npos && foundEnd != std::string::npos) {
+			std::string tempStr = str.substr(foundStart+tagLen, foundEnd-tagLen-foundStart);
+			myVector.push_back(tempStr);
+			foundStart = str.find(pStartTag, foundStart+1);
+			foundEnd   = str.find(pEndTag, foundEnd+1);
+		}
+		else {
+			noTagFound = true;
+		}
+	}
+
+	return SUCCESS;
 }
 
 void StringParserClass::cleanup() {
